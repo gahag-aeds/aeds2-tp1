@@ -1,0 +1,28 @@
+SrcDir = src
+BinDir = bin
+LibAeds = $(SrcDir)/libaeds
+
+OutputFileName   = restaurant.exe
+OutputFile       = $(BinDir)/$(OutputFileName)
+CompilationUnits = $(LibAeds)/*.c			  \
+									 $(LibAeds)/adt/*.c   \
+									 $(SrcDir)/util/*.c   \
+									 $(SrcDir)/entity/*.c \
+									 $(SrcDir)/*.c
+
+Build       = gcc
+Standard    = c99
+BuildFlags  = -Wall             \
+              -std=$(Standard)	\
+              -I $(SrcDir)      \
+              -o $(OutputFile)
+
+
+directories: $(SrcDir)
+	@if not exist "$(BinDir)" mkdir "$(BinDir)";
+
+build: directories
+	@$(Build) $(BuildFlags) $(CompilationUnits)
+
+run: directories build
+	@$(BinDir)/$(OutputFileName)
