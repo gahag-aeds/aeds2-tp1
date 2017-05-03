@@ -13,6 +13,7 @@ CompilationUnits = $(LibAeds)/*.c			  \
 Build       = clang
 Standard    = c99
 Optimize    = -flto -O2
+Debug       = -g
 BuildFlags  = -Wall             \
               -std=$(Standard)	\
 							$(Optimize)       \
@@ -26,14 +27,18 @@ directories: $(SrcDir)
 build: directories
 	@$(Build) $(BuildFlags) $(CompilationUnits)
 
+debug: directories
+	@$(Build) $(Debug) $(BuildFlags) $(CompilationUnits)
+	@gdb $(OutputFile)
+
 run: directories build
-	@cd $(BinDir) && ./$(OutputFileName)
+	@cd $(BinDir) && ./$(OutputFile)
 
 valgrind: directories build
-	@valgrind --leak-check=full $(BinDir)/$(OutputFileName)
+	@valgrind --leak-check=full $(OutputFile)
 
 valgrindv: directories build
-	@valgrind --leak-check=full -v $(BinDir)/$(OutputFileName)
+	@valgrind --leak-check=full -v $(OutputFile)
 
 
 clean:
