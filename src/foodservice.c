@@ -4,9 +4,10 @@
 
 
 foodservice new_foodservice(allocator allocator, size_t size) {
-  foodservice fs = alloc(allocator, size * sizeof(user*));
+  foodservice fs = al_alloc(allocator, size, sizeof(user*));
   
-  memset(fs, (int) NULL, size * sizeof(user*));
+  for (size_t i = 0; i < size; i++)
+    fs[i] = NULL;
   
   return fs;
 }
@@ -21,7 +22,7 @@ void delete_foodservice(
     if (fs[i] != NULL)
       delete_user(user_alloc, fs[i]);
   
-  dealloc(alloc, fs);
+  al_dealloc(alloc, fs);
 }
 
 

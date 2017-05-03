@@ -4,7 +4,7 @@
 
 
 user* new_user(allocator allocator, id id, time arrival) {
-  user* user = alloc(allocator, sizeof(*user));
+  user* user = al_alloc(allocator, 1, sizeof(*user));
   
   user->id = id;
   user->arrival = arrival;
@@ -13,5 +13,5 @@ user* new_user(allocator allocator, id id, time arrival) {
 }
 
 void delete_user(allocator allocator, void* user) {
-  dealloc(allocator, user);
+  al_dealloc(allocator, user);
 }

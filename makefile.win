@@ -12,8 +12,10 @@ CompilationUnits = $(LibAeds)/*.c			  \
 
 Build       = gcc
 Standard    = c99
+Optimize    = -flto -O2 -S
 BuildFlags  = -Wall             \
               -std=$(Standard)	\
+							$(Optimize)       \
               -I $(SrcDir)      \
               -o $(OutputFile)
 

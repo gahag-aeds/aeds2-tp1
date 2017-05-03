@@ -4,7 +4,7 @@
 
 
 tray* new_tray(allocator allocator, id id) {
-  tray* tray = alloc(allocator, sizeof(*tray));
+  tray* tray = al_alloc(allocator, 1, sizeof(*tray));
   
   tray->id = id;
   
@@ -12,5 +12,5 @@ tray* new_tray(allocator allocator, id id) {
 }
 
 void delete_tray(allocator allocator, void* ptr) {
-  dealloc(allocator, ptr);
+  al_dealloc(allocator, ptr);
 }

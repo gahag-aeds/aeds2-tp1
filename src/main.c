@@ -22,11 +22,12 @@
 // number of tray stacks
 
 
-void out_of_memory(void) {
-  exit(EXIT_FAILURE);
-}
-
-void reload_tray_stack(allocator allocator, idseed* seed, stack* tray_stack, size_t load) {
+void reload_tray_stack(
+  allocator allocator,
+  idseed* seed,
+  stack* tray_stack,
+  size_t load
+) {
   idseed prev_seed;
   
   for (; load > 0; load--) {
@@ -46,7 +47,7 @@ void reload_tray_stack(allocator allocator, idseed* seed, stack* tray_stack, siz
 
 
 int main() {
-  const allocator malloc = mallocator(out_of_memory);
+  const allocator malloc = std_allocator(abort);
   
   const size_t user_income = 2;
   const size_t food_service_size = 4;
@@ -56,6 +57,7 @@ int main() {
   
   const time total_time = 4 * 60; // 4 hours.
   time total_user_time = 0;
+  size_t served_users_count = 0;
   
   idseed user_idseed = { 0 }; // Start with 0, to use the id as a total user count.
   idseed tray_idseed = { 0 }; // Start with 0, to use the id as a total tray count.
@@ -70,14 +72,14 @@ int main() {
   foodservice food_service = new_foodservice(malloc, food_service_size);
   
   
-  for (time time_spent = 0; time_spent < total_time; time_spent++) {
-    if (time_spent % tray_reload_rate == 0)
+  for (time elapsed_time = 0; elapsed_time < total_time; elapsed_time++) {
+    if (elapsed_time % tray_reload_rate == 0)
       reload_tray_stack(malloc, &tray_idseed, &tray_stack, tray_reload_load);
     
     user* usr = NULL;
     
     for (size_t i = 0; i < user_income; i++) {
-      usr = new_user(malloc, create_id(&user_idseed), time_spent); // User arrives.
+      usr = new_user(malloc, create_id(&user_idseed), elapsed_time); // User arrives.
       
       enqueue(&user_cashier_queue, usr); // User enters the cashier queue.
     }
@@ -102,11 +104,25 @@ int main() {
     usr = foodservice_shift(food_service, food_service_size, usr);
     
     if (usr != NULL) {
-      total_user_time += time_spent - usr->arrival;
+      time user_time = elapsed_time - usr->arrival;
+      total_user_time += user_time;
+      served_users_count++;
+      
+      printf("User #%lu time: %zuh %zum\n", usr->id, user_time / 60, user_time % 60);
       
       delete_user(malloc, usr);
     }
   }
+  
+  
+  // Decimal minutes are irrelevant...
+  time average_user_time = total_user_time / served_users_count;
+  
+  printf("Total users: %lu\n", user_idseed.seed);
+  printf("Total trays: %lu\n", tray_idseed.seed);
+  printf("Served users: %zu\n", served_users_count);
+  printf("Total user time: %zuh %zum\n", total_user_time / 60, total_user_time % 60);
+  printf("Average user time: %zuh %zum\n", average_user_time / 60, average_user_time % 60);
   
   
   delete_user(malloc, cashier_user);
@@ -116,13 +132,6 @@ int main() {
   delete_queue(&user_tray_queue, delete_user, malloc);
   delete_stack(&tray_stack, delete_tray, malloc);
   
-  
-  double average_user_time = (double) total_user_time / user_idseed.seed;
-
-  printf("Total users: %lu\n", user_idseed.seed);
-  printf("Total trays: %lu\n", tray_idseed.seed);
-  printf("Average user time: %lf\n", average_user_time);
-
   
   return 0;
 }
