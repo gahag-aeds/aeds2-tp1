@@ -1,6 +1,7 @@
 SrcDir = src
 BinDir = bin
 LibAeds = $(SrcDir)/libaeds
+SettingsFile = settings.cfg
 
 OutputFileName   = restaurant
 OutputFile       = $(BinDir)/$(OutputFileName)
@@ -29,16 +30,16 @@ build: directories
 
 debug: directories
 	@$(Build) $(Debug) $(BuildFlags) $(CompilationUnits)
-	@gdb $(OutputFile)
+	@gdb --args $(OutputFile) $(SettingsFile)
 
 run: directories build
-	@cd $(BinDir) && ./$(OutputFile)
+	@$(OutputFile) $(SettingsFile)
 
 valgrind: directories build
-	@valgrind --leak-check=full $(OutputFile)
+	@valgrind --leak-check=full $(OutputFile) $(SettingsFile)
 
 valgrindv: directories build
-	@valgrind --leak-check=full -v $(OutputFile)
+	@valgrind --leak-check=full -v $(OutputFile) $(SettingsFile)
 
 
 clean:

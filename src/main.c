@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <libaeds/args.h>
+#include <libaeds/console.h>
 #include <libaeds/memory.h>
 #include <libaeds/adt/queue.h>
 #include <libaeds/adt/stack.h>
@@ -12,6 +14,7 @@
 #include <entity/user.h>
 #include <entity/tray.h>
 
+#include <config.h>
 #include <foodservice.h>
 
 
@@ -46,14 +49,10 @@ void reload_tray_stack(
 }
 
 
-int main() {
-  const allocator malloc = std_allocator(abort);
+int main(int argc, char *argv[]) {
+  const allocator mallocator = std_allocator(abort);
   
-  const size_t user_income = 2;
-  const size_t food_service_size = 4;
-  const size_t tray_stack_max = 30;
-  const size_t tray_reload_load = 10;
-  const time tray_reload_rate = 12;
+  config cfg;
   
   const time total_time = 4 * 60; // 4 hours.
   time total_user_time = 0;
@@ -64,22 +63,33 @@ int main() {
   
   user* cashier_user = NULL;  // The user at the cashier.
   
-  queue user_cashier_queue = new_lqueue(malloc);
-  queue user_tray_queue = new_lqueue(malloc);
+  queue user_cashier_queue = new_lqueue(mallocator);
+  queue user_tray_queue = new_lqueue(mallocator);
   
-  stack tray_stack = new_vstack(malloc, tray_stack_max);
+  stack tray_stack;
   
-  foodservice food_service = new_foodservice(malloc, food_service_size);
+  foodservice food_service;
+  
+  
+  int cfg_status = load_cfg(mallocator, argc, argv, &cfg);
+  
+  if (cfg_status != 0)
+    return cfg_status;
+  
+  
+  tray_stack = new_vstack(mallocator, cfg.tray_stack_max);
+  
+  food_service = new_foodservice(mallocator, cfg.food_service_size);
   
   
   for (time elapsed_time = 0; elapsed_time < total_time; elapsed_time++) {
-    if (elapsed_time % tray_reload_rate == 0)
-      reload_tray_stack(malloc, &tray_idseed, &tray_stack, tray_reload_load);
+    if (elapsed_time % cfg.tray_reload_rate == 0)
+      reload_tray_stack(mallocator, &tray_idseed, &tray_stack, cfg.tray_reload_load);
     
     user* usr = NULL;
     
-    for (size_t i = 0; i < user_income; i++) {
-      usr = new_user(malloc, create_id(&user_idseed), elapsed_time); // User arrives.
+    for (size_t i = 0; i < cfg.user_income; i++) {
+      usr = new_user(mallocator, create_id(&user_idseed), elapsed_time); // User arrives.
       
       enqueue(&user_cashier_queue, usr); // User enters the cashier queue.
     }
@@ -94,23 +104,23 @@ int main() {
       usr = dequeue(&user_tray_queue); // User leaves the tray queue.
       
       if (usr != NULL)  // User grabs the tray.
-        delete_tray(malloc, stack_pop(&tray_stack));
+        delete_tray(mallocator, stack_pop(&tray_stack));
     }
     else
       usr = NULL; // There were no trays available,
                   // so no user came from the tray stack to serve food.
     
     // User enters the food service, and the user at the last food bay proceeds to eat.
-    usr = foodservice_shift(food_service, food_service_size, usr);
+    usr = foodservice_shift(food_service, cfg.food_service_size, usr);
     
     if (usr != NULL) {
       time user_time = elapsed_time - usr->arrival;
       total_user_time += user_time;
       served_users_count++;
       
-      printf("User #%lu time: %zuh %zum\n", usr->id, user_time / 60, user_time % 60);
+      // printf("User #%lu time: %zuh %zum\n", usr->id, user_time / 60, user_time % 60);
       
-      delete_user(malloc, usr);
+      delete_user(mallocator, usr);
     }
   }
   
@@ -125,12 +135,12 @@ int main() {
   printf("Average user time: %zuh %zum\n", average_user_time / 60, average_user_time % 60);
   
   
-  delete_user(malloc, cashier_user);
-  delete_foodservice(malloc, malloc, food_service, food_service_size);
+  delete_user(mallocator, cashier_user);
+  delete_foodservice(mallocator, mallocator, food_service, cfg.food_service_size);
   
-  delete_queue(&user_cashier_queue, delete_user, malloc);
-  delete_queue(&user_tray_queue, delete_user, malloc);
-  delete_stack(&tray_stack, delete_tray, malloc);
+  delete_queue(&user_cashier_queue, delete_user, mallocator);
+  delete_queue(&user_tray_queue, delete_user, mallocator);
+  delete_stack(&tray_stack, delete_tray, mallocator);
   
   
   return 0;
