@@ -23,7 +23,7 @@ typedef struct config {
 } config;
 
 
-extern int load_cfg(allocator, int argc, char* argv[], config* cfg);
+extern int load_cfg(allocator, int argc, char* argv[static argc], config* cfg);
 
 extern bool print_cfg(config cfg);
 

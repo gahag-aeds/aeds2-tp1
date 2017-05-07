@@ -1,29 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #include <libaeds/args.h>
 #include <libaeds/array.h>
-#include <libaeds/console.h>
 #include <libaeds/memory.h>
 #include <libaeds/adt/queue.h>
 #include <libaeds/adt/stack.h>
+
+#include <config.h>
+#include <foodservice.h>
 
 #include <util/id.h>
 #include <util/time.h>
 
 #include <entity/user.h>
 #include <entity/tray.h>
-
-#include <config.h>
-#include <foodservice.h>
-
-
-// Parameters:
-//
-// number of user token queues
-// number of user stack queues
-// number of tray stacks
 
 
 void reload_tray_stack(
@@ -140,8 +131,6 @@ int main(int argc, char *argv[]) {
         total_user_time += user_time;
         served_users_count++;
         
-        // printf("User #%lu time: %zuh %zum\n", usr->id, user_time / 60, user_time % 60);
-        
         delete_user(mallocator, usr);
       }
     }
@@ -149,7 +138,8 @@ int main(int argc, char *argv[]) {
   
   
   // Decimal minutes are irrelevant...
-  time average_user_time = total_user_time / served_users_count;
+  time average_user_time = served_users_count == 0 ? 0
+                                                   : total_user_time / served_users_count;
   
   printf("Total users: %lu\n", user_idseed.seed);
   printf("Total trays: %lu\n", tray_idseed.seed);
@@ -158,7 +148,7 @@ int main(int argc, char *argv[]) {
   printf("Average user time: %zuh %zum\n", average_user_time / 60, average_user_time % 60);
   
   
-  foreach(i, 0, cfg.cashiers_count) {
+  foreach (i, 0, cfg.cashiers_count) {
     // Delete cashiers:
     delete_user(mallocator, cashiers[i]);
     

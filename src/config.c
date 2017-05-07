@@ -4,6 +4,7 @@
 
 #include <libaeds/args.h>
 #include <libaeds/console.h>
+#include <libaeds/io.h>
 
 
 static int stdin_args(
@@ -35,14 +36,14 @@ static int file_args(
   if (cfg_file == NULL)
     return -1;
   
-  if (fscanf(cfg_file, "%zu", &cfg->user_income)       != 1 ||
-      fscanf(cfg_file, "%zu", &cfg->cashiers_count)    != 1 ||
-      fscanf(cfg_file, "%zu", &cfg->tray_stacks_count) != 1 ||
-      fscanf(cfg_file, "%zu", &cfg->tray_stack_max)    != 1 ||
-      fscanf(cfg_file, "%zu", &cfg->tray_reload_load)  != 1 ||
-      fscanf(cfg_file, "%zu", &cfg->tray_reload_rate)  != 1 ||
-      fscanf(cfg_file, "%zu", &cfg->food_service_size) != 1)
-      return -2;
+  if (fscanf(cfg_file, "%zu", &cfg->user_income)       != 1 || !file_skip_line(cfg_file) ||
+      fscanf(cfg_file, "%zu", &cfg->cashiers_count)    != 1 || !file_skip_line(cfg_file) ||
+      fscanf(cfg_file, "%zu", &cfg->tray_stacks_count) != 1 || !file_skip_line(cfg_file) ||
+      fscanf(cfg_file, "%zu", &cfg->tray_stack_max)    != 1 || !file_skip_line(cfg_file) ||
+      fscanf(cfg_file, "%zu", &cfg->tray_reload_load)  != 1 || !file_skip_line(cfg_file) ||
+      fscanf(cfg_file, "%zu", &cfg->tray_reload_rate)  != 1 || !file_skip_line(cfg_file) ||
+      fscanf(cfg_file, "%zu", &cfg->food_service_size) != 1 )
+    return -2;
   
   fclose(cfg_file);
   
@@ -50,7 +51,7 @@ static int file_args(
 }
 
 
-int load_cfg(allocator allocator, int argc, char* argv[], config* cfg) {
+int load_cfg(allocator allocator, int argc, char* argv[static argc], config* cfg) {
   argvresults results;
   
   bool parsed = handle_args(
