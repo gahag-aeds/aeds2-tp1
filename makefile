@@ -36,10 +36,10 @@ run: directories build
 	@$(OutputFile) $(SettingsFile)
 
 valgrind: directories build
-	@valgrind --leak-check=full $(OutputFile) $(SettingsFile)
+	@valgrind --leak-check=full --show-leak-kinds=all $(OutputFile) $(SettingsFile)
 
 valgrindv: directories build
-	@valgrind --leak-check=full -v $(OutputFile) $(SettingsFile)
+	@valgrind --leak-check=full --show-leak-kinds=all -v $(OutputFile) $(SettingsFile)
 
 
 clean:
