@@ -1,7 +1,15 @@
 SrcDir = src
+ScriptDir = scripts
 BinDir = bin
+
 LibAeds = $(SrcDir)/libaeds
-SettingsFile = settings.cfg
+
+SettingsFile = default_settings.cfg
+
+CombinationsFile = settings_combinations.txt
+GenCombinationsScript = $(ScriptDir)/gen_combinations.sh
+RunCombinationsScript = $(ScriptDir)/run_combinations.sh
+
 
 OutputFileName   = restaurant
 OutputFile       = $(BinDir)/$(OutputFileName)
@@ -11,15 +19,26 @@ CompilationUnits = $(LibAeds)/*.c			  \
 									 $(SrcDir)/entity/*.c \
 									 $(SrcDir)/*.c
 
+
 Build       = clang
 Standard    = c99
+Warnings    = -Wall -Wextra
 Optimize    = -flto -O2
 Debug       = -g
-BuildFlags  = -Wall             \
+
+BuildFlags  = $(Warnings)		    \
               -std=$(Standard)	\
 							$(Optimize)       \
               -I $(SrcDir)      \
               -o $(OutputFile)
+
+ReleaseFlags = -Wall            \
+               -std=$(Standard)	\
+							 -DNDEBUG -s			\
+							 $(Optimize)      \
+               -I $(SrcDir)     \
+               -o $(OutputFile)
+
 
 
 directories: $(SrcDir)
@@ -27,6 +46,9 @@ directories: $(SrcDir)
 
 build: directories
 	@$(Build) $(BuildFlags) $(CompilationUnits)
+
+release: directories
+	@$(Build) $(ReleaseFlags) $(CompilationUnits)
 
 debug: directories
 	@$(Build) $(Debug) $(BuildFlags) $(CompilationUnits)
@@ -40,6 +62,12 @@ valgrind: directories build
 
 valgrindv: directories build
 	@valgrind --leak-check=full --show-leak-kinds=all -v $(OutputFile) $(SettingsFile)
+
+gencomb: $(ScriptDir)
+	@$(GenCombinationsScript)
+
+runcomb: $(ScriptDir) gencomb release
+	@$(RunCombinationsScript) $(OutputFile) $(CombinationsFile)
 
 
 clean:

@@ -1,6 +1,7 @@
 SrcDir = src
 BinDir = bin
 LibAeds = $(SrcDir)/libaeds
+SettingsFile = default_settings.cfg
 
 OutputFileName   = restaurant.exe
 OutputFile       = $(BinDir)/$(OutputFileName)
@@ -10,14 +11,25 @@ CompilationUnits = $(LibAeds)/*.c			  \
 									 $(SrcDir)/entity/*.c \
 									 $(SrcDir)/*.c
 
+
 Build       = gcc
 Standard    = c99
-Optimize    = -flto -O2 -S
-BuildFlags  = -Wall             \
+Warnings    = -Wall -Wextra
+Optimize    = -flto -O2
+
+BuildFlags  = $(Warnings)       \
               -std=$(Standard)	\
 							$(Optimize)       \
               -I $(SrcDir)      \
               -o $(OutputFile)
+
+ReleaseFlags = -Wall            \
+               -std=$(Standard)	\
+							 -DNDEBUG -s			\
+							 $(Optimize)      \
+               -I $(SrcDir)     \
+               -o $(OutputFile)
+
 
 
 directories: $(SrcDir)
@@ -25,6 +37,9 @@ directories: $(SrcDir)
 
 build: directories
 	@$(Build) $(BuildFlags) $(CompilationUnits)
+
+release: directories
+  @$(Build) $(ReleaseFlags) $(CompilationUnits)
 
 run: directories build
 	@$(BinDir)/$(OutputFileName)
