@@ -5,10 +5,13 @@ BinDir = bin
 LibAeds = $(SrcDir)/libaeds
 
 SettingsFile = default_settings.cfg
+SettingsCombinationsFile = settings_combinations.txt
+CombinationsResultsFile = combinations_results.txt
 
 CombinationsFile = settings_combinations.txt
 GenCombinationsScript = $(ScriptDir)/gen_combinations.sh
 RunCombinationsScript = $(ScriptDir)/run_combinations.sh
+SortResultsScript = $(ScriptDir)/sort_results.sh
 
 
 OutputFileName   = restaurant
@@ -64,10 +67,13 @@ valgrindv: directories build
 	@valgrind --leak-check=full --show-leak-kinds=all -v $(OutputFile) $(SettingsFile)
 
 gencomb: $(ScriptDir)
-	@$(GenCombinationsScript)
+	@$(GenCombinationsScript) > $(SettingsCombinationsFile)
 
 runcomb: $(ScriptDir) gencomb release
-	@$(RunCombinationsScript) $(OutputFile) $(CombinationsFile)
+	@$(RunCombinationsScript) $(OutputFile) $(CombinationsFile) > $(CombinationsResultsFile)
+
+sortres: $(ScriptDir) runcomb
+	@$(SortResultsScript) $(CombinationsResultsFile)
 
 
 clean:
