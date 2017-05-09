@@ -1,3 +1,4 @@
 [submodule "src/libaeds"]
 	path = src/libaeds
 	url = git://github.com/gahag/libaeds.git
+	branch = master
