@@ -39,7 +39,7 @@ build: directories
 	@$(Build) $(BuildFlags) $(CompilationUnits)
 
 release: directories
-  @$(Build) $(ReleaseFlags) $(CompilationUnits)
+	@$(Build) $(ReleaseFlags) $(CompilationUnits)
 
 run: directories build
-	@$(BinDir)/$(OutputFileName)
+	@$(BinDir)/$(OutputFileName) $(SettingsFile)
