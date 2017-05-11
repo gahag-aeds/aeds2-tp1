@@ -7,6 +7,7 @@ LibAeds = $(SrcDir)/libaeds
 SettingsFile = default_settings.cfg
 SettingsCombinationsFile = settings_combinations.txt
 CombinationsResultsFile = combinations_results.txt
+SortedResultsFile = sorted_results.txt
 
 CombinationsFile = settings_combinations.txt
 GenCombinationsScript = $(ScriptDir)/gen_combinations.sh
@@ -72,8 +73,8 @@ gencomb: $(ScriptDir)
 runcomb: $(ScriptDir) gencomb release
 	@$(RunCombinationsScript) $(OutputFile) $(CombinationsFile) > $(CombinationsResultsFile)
 
-sortres: $(ScriptDir) runcomb
-	@$(SortResultsScript) $(CombinationsResultsFile)
+sortres: $(ScriptDir)
+	@$(SortResultsScript) $(CombinationsResultsFile) > $(SortedResultsFile)
 
 
 clean:
