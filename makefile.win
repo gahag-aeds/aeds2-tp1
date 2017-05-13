@@ -5,10 +5,10 @@ SettingsFile = default_settings.cfg
 
 OutputFileName   = restaurant.exe
 OutputFile       = $(BinDir)/$(OutputFileName)
-CompilationUnits = $(LibAeds)/*.c			  \
-									 $(LibAeds)/adt/*.c   \
-									 $(SrcDir)/util/*.c   \
-									 $(SrcDir)/entity/*.c \
+CompilationUnits = $(LibAeds)/*.c         \
+									 $(LibAeds)/adt/*.c     \
+                   $(LibAeds)/memory/*.c  \
+									 $(SrcDir)/util/*.c     \
 									 $(SrcDir)/*.c
 
 

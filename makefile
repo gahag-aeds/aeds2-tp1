@@ -17,10 +17,10 @@ SortResultsScript = $(ScriptDir)/sort_results.sh
 
 OutputFileName   = restaurant
 OutputFile       = $(BinDir)/$(OutputFileName)
-CompilationUnits = $(LibAeds)/*.c			  \
-									 $(LibAeds)/adt/*.c   \
-									 $(SrcDir)/util/*.c   \
-									 $(SrcDir)/entity/*.c \
+CompilationUnits = $(LibAeds)/*.c					\
+									 $(LibAeds)/adt/*.c			\
+									 $(LibAeds)/memory/*.c  \
+									 $(SrcDir)/util/*.c			\
 									 $(SrcDir)/*.c
 
 
@@ -48,24 +48,25 @@ ReleaseFlags = -Wall            \
 directories: $(SrcDir)
 	@[ -d "$(BinDir)" ] || mkdir "$(BinDir)";
 
+
 build: directories
 	@$(Build) $(BuildFlags) $(CompilationUnits)
 
 release: directories
 	@$(Build) $(ReleaseFlags) $(CompilationUnits)
 
-debug: directories
-	@$(Build) $(Debug) $(BuildFlags) $(CompilationUnits)
-	@gdb --args $(OutputFile) $(SettingsFile)
 
 run: directories build
 	@$(OutputFile) $(SettingsFile)
 
-valgrind: directories build
-	@valgrind --leak-check=full --show-leak-kinds=all $(OutputFile) $(SettingsFile)
 
-valgrindv: directories build
-	@valgrind --leak-check=full --show-leak-kinds=all -v $(OutputFile) $(SettingsFile)
+valgrind: directories build
+	@valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes $(OutputFile) $(SettingsFile)
+
+debug: directories
+	@$(Build) $(Debug) $(BuildFlags) $(CompilationUnits)
+	@gdb --args $(OutputFile) $(SettingsFile)
+
 
 gencomb: $(ScriptDir)
 	@$(GenCombinationsScript) > $(SettingsCombinationsFile)

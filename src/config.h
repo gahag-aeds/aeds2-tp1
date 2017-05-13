@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include <libaeds/memory.h>
+#include <libaeds/memory/allocator.h>
 
 #include <util/time.h>
 

@@ -3,7 +3,8 @@
 
 #include <libaeds/args.h>
 #include <libaeds/array.h>
-#include <libaeds/memory.h>
+#include <libaeds/memory/allocator.h>
+#include <libaeds/memory/vectorpool.h>
 #include <libaeds/adt/queue.h>
 #include <libaeds/adt/stack.h>
 
@@ -14,42 +15,18 @@
 #include <util/time.h>
 
 #include <entity/user.h>
-#include <entity/tray.h>
-
-
-void reload_tray_stack(
-  allocator allocator,
-  idseed* seed,
-  stack* tray_stack,
-  size_t load
-) {
-  idseed prev_seed;
-  
-  for (; load > 0; load--) {
-    prev_seed = *seed;
-    
-    tray* tray = new_tray(allocator, create_id(seed));
-    
-    if (!stack_push(tray_stack, tray)) {
-      delete_tray(allocator, tray);
-      
-      *seed = prev_seed; // Reset the seed, since the tray was of no use.
-      
-      break;
-    }
-  }
-}
 
 
 int main(int argc, char *argv[]) {
-  const allocator mallocator = std_allocator(abort);
+  allocator mallocator = std_allocator(abort);
   
   const time total_time = 4 * 60; // 4 hours.
   time total_user_time = 0;
   size_t served_users_count = 0;
+  size_t trays_count = 0;
   
   idseed user_idseed = { .seed = 0 }; // Start with 0, to use the id as a total user count.
-  idseed tray_idseed = { .seed = 0 }; // Start with 0, to use the id as a total tray count.
+  void* phantom_tray = NULL + 1;
   
   
   config cfg;
@@ -58,6 +35,14 @@ int main(int argc, char *argv[]) {
   if (cfg_status != 0)
     return cfg_status;
   
+  
+  
+  allocator user_pool = new_vpool(
+    mallocator,
+    cfg.user_income * total_time,
+    sizeof(user),
+    abort
+  );
   
   user* cashiers[cfg.cashiers_count];
   array_fill(cfg.cashiers_count, (void**) cashiers, NULL);
@@ -82,14 +67,23 @@ int main(int argc, char *argv[]) {
   for (time elapsed_time = 0; elapsed_time < total_time; elapsed_time++) {
     // First of all, reload the tray stacks:
     if (elapsed_time % cfg.tray_reload_rate == 0)
-      foreach (i, 0, cfg.tray_stacks_count)
-        reload_tray_stack(mallocator, &tray_idseed, &tray_stacks[i], cfg.tray_reload_load);
+      foreach (i, 0, cfg.tray_stacks_count) // In each tray stack
+        foreach (_, 0, cfg.tray_reload_load) { // Reload the specified number of trays.
+          if (stack_push(&tray_stacks[i], phantom_tray))
+            trays_count++;
+          else
+            break;
+        }
     
     user* usr = NULL; // Intermediary variable.
     
     foreach (i, 0, cfg.user_income) {
       // User arrives the course:
-      usr = new_user(mallocator, create_id(&user_idseed), elapsed_time);
+      usr = al_alloc(user_pool, 1, sizeof(user));
+      *usr = (user) {
+        .id = create_id(&user_idseed),
+        .arrival = elapsed_time
+      };
       
       // User enters the next cashier queue:
       enqueue(&user_cashier_queues[i % cfg.cashiers_count], usr);
@@ -115,7 +109,7 @@ int main(int argc, char *argv[]) {
         
         // User grabs the tray:
         if (usr != NULL)
-          delete_tray(mallocator, stack_pop(&tray_stacks[i]));
+          stack_pop(&tray_stacks[i]);
       }
       else
         // There were no trays available, so no user came from the tray stack to serve food:
@@ -131,7 +125,7 @@ int main(int argc, char *argv[]) {
         total_user_time += user_time;
         served_users_count++;
         
-        delete_user(mallocator, usr);
+        al_dealloc(user_pool, usr);
       }
     }
   }
@@ -142,30 +136,34 @@ int main(int argc, char *argv[]) {
                                                    : total_user_time / served_users_count;
   
   printf("Total users: %lu\n", user_idseed.seed);
-  printf("Total trays: %lu\n", tray_idseed.seed);
+  printf("Total trays: %zu\n", trays_count);
   printf("Served users: %zu\n", served_users_count);
   printf("Total user time: %zuh %zum\n", total_user_time / 60, total_user_time % 60);
   printf("Average user time: %zuh %zum\n", average_user_time / 60, average_user_time % 60);
   
   
-  foreach (i, 0, cfg.cashiers_count) {
-    // Delete cashiers:
-    delete_user(mallocator, cashiers[i]);
-    
+  foreach (i, 0, cfg.cashiers_count)
     // Delete user_cashier_queues:
-    delete_queue(&user_cashier_queues[i], delete_user, mallocator);
-  }
+    delete_queue(&user_cashier_queues[i], NULL, null_allocator());
   
   foreach (i, 0, cfg.tray_stacks_count) {
     // Delete user_tray_queues:
-    delete_queue(&user_tray_queues[i], delete_user, mallocator);
+    delete_queue(&user_tray_queues[i], NULL, null_allocator());
     
     // Delete tray_stacks
-    delete_stack(&tray_stacks[i], delete_tray, mallocator);
+    delete_stack(&tray_stacks[i], NULL, null_allocator());
     
     // Delete food_service:
-    delete_foodservice(mallocator, mallocator, food_services[i], cfg.food_service_size);
+    delete_foodservice(
+      mallocator,
+      food_services[i],
+      cfg.food_service_size,
+      NULL,
+      null_allocator()
+    );
   }
+  
+  delete_vpool(&user_pool);
   
   
   return 0;
