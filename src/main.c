@@ -44,16 +44,23 @@ int main(int argc, char *argv[]) {
     abort
   );
   
+  allocator llist_node_pool = new_vpool(
+    mallocator,
+    cfg.user_income * total_time,
+    sizeof(listnode),
+    abort
+  );
+  
   user* cashiers[cfg.cashiers_count];
   array_fill(cfg.cashiers_count, (void**) cashiers, NULL);
   
   queue user_cashier_queues[cfg.cashiers_count]; // One queue for each cashier.
   foreach (i, 0, cfg.cashiers_count)
-    user_cashier_queues[i] = new_lqueue(mallocator);
+    user_cashier_queues[i] = new_lqueue(llist_node_pool);
   
   queue user_tray_queues[cfg.tray_stacks_count]; // One queue for each tray stack.
   foreach (i, 0, cfg.tray_stacks_count)
-    user_tray_queues[i] = new_lqueue(mallocator);
+    user_tray_queues[i] = new_lqueue(llist_node_pool);
   
   stack tray_stacks[cfg.tray_stacks_count];
   foreach (i, 0, cfg.tray_stacks_count)
@@ -164,6 +171,7 @@ int main(int argc, char *argv[]) {
   }
   
   delete_vpool(&user_pool);
+  delete_vpool(&llist_node_pool);
   
   
   return 0;
