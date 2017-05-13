@@ -3,8 +3,8 @@
 #include <stdio.h>
 
 #include <libaeds/args.h>
-#include <libaeds/console.h>
-#include <libaeds/io.h>
+#include <libaeds/io/console.h>
+#include <libaeds/io/file.h>
 
 
 static int stdin_args(
