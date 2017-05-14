@@ -79,12 +79,14 @@ int load_cfg(allocator allocator, int argc, char* argv[static argc], config* cfg
   
   if (!parsed) {
     fputs("Invalid number of arguments!\n", stderr);
+    delete_argvresults(&results); // O(1)
     return -1;
   }
   
   // No file specified, cfg read from stdin.
   if (results.argv_size == 1 && results.data[0] < 0) {
     fputs("Invalid option!\n", stderr);
+    delete_argvresults(&results); // O(1)
     return -2;
   }
   // File specified, cfg read from file:
@@ -92,10 +94,12 @@ int load_cfg(allocator allocator, int argc, char* argv[static argc], config* cfg
     switch(results.data[1]) {
       case -1:
         fprintf(stderr, "Failed to open file %s\n", argv[1]);
+        delete_argvresults(&results); // O(1)
         return -3;
       
       case -2:
         fprintf(stderr, "Failed to parse file %s\n", argv[1]);
+        delete_argvresults(&results); // O(1)
         return -4;
     }
   
