@@ -13,7 +13,7 @@ typedef user** foodservice;
 
 // Create an food service of the specified size, using the specified allocator.
 // The resultant foodservice must be deleted with delete_foodservice when no longer used.
-// Complexity: Worst O(n)
+// Complexity: O(n)
 foodservice new_foodservice(allocator, size_t);
 
 // Delete an foodservice of the specified size, using the specified allocator.
