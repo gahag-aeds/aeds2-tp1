@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <libaeds/args.h>
 #include <libaeds/array.h>
 #include <libaeds/memory/allocator.h>
 #include <libaeds/memory/vectorpool.h>
