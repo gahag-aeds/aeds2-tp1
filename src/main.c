@@ -16,24 +16,25 @@
 #include <entity/user.h>
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   allocator mallocator = std_allocator(abort);
   
   const time total_time = 4 * 60; // 4 hours.
   time total_user_time = 0;
+  
   size_t served_users_count = 0;
   size_t trays_count = 0;
   
   idseed user_idseed = { .seed = 0 }; // Start with 0, to use the id as a total user count.
-  void* phantom_tray = NULL + 1;
+  void* phantom_tray = NULL + 1;  // Warning: do NOT dereference!
   
   
-  config cfg;
-  int cfg_status = load_cfg(mallocator, argc, argv, &cfg);
-  
-  if (cfg_status != 0)
-    return cfg_status;
-  
+  config cfg; {
+    int cfg_status = load_cfg(mallocator, argc, argv, &cfg);
+    
+    if (cfg_status != 0)
+      return cfg_status;
+  }
   
   
   allocator user_pool = new_vpool(
@@ -50,41 +51,49 @@ int main(int argc, char *argv[]) {
     abort
   );
   
-  user* cashiers[cfg.cashiers_count];
-  array_fill(cfg.cashiers_count, (void**) cashiers, NULL);
   
-  queue user_cashier_queues[cfg.cashiers_count]; // One queue for each cashier.
-  foreach_ix (i, 0, cfg.cashiers_count)
-    user_cashier_queues[i] = new_lqueue(llist_node_pool);
+  user* cashiers[cfg.cashiers_count]; {
+    array_fill(cfg.cashiers_count, (void**) cashiers, NULL);
+  }
   
-  queue user_tray_queues[cfg.tray_stacks_count]; // One queue for each tray stack.
-  foreach_ix (i, 0, cfg.tray_stacks_count)
-    user_tray_queues[i] = new_lqueue(llist_node_pool);
+  queue user_cashier_queues[cfg.cashiers_count]; {  // One queue for each cashier.
+    foreach_ix (i, 0, cfg.cashiers_count)
+      user_cashier_queues[i] = new_lqueue(llist_node_pool);
+  }
   
-  stack tray_stacks[cfg.tray_stacks_count];
-  foreach_ix (i, 0, cfg.tray_stacks_count)
-    tray_stacks[i] = new_vstack(mallocator, cfg.tray_stack_max);
+  queue user_tray_queues[cfg.tray_stacks_count]; {  // One queue for each tray stack.
+    foreach_ix (i, 0, cfg.tray_stacks_count)
+      user_tray_queues[i] = new_lqueue(llist_node_pool);
+  }
   
-  foodservice food_services[cfg.tray_stacks_count]; // One food service for each tray stack.
-  foreach_ix (i, 0, cfg.tray_stacks_count)
-    food_services[i] = new_foodservice(mallocator, cfg.food_service_size);
+  stack tray_stacks[cfg.tray_stacks_count]; {
+    foreach_ix (i, 0, cfg.tray_stacks_count)
+      tray_stacks[i] = new_vstack(mallocator, cfg.tray_stack_max);
+  }
+  
+  foodservice food_services[cfg.tray_stacks_count]; { // A food service for each tray stack.
+    foreach_ix (i, 0, cfg.tray_stacks_count)
+      food_services[i] = new_foodservice(mallocator, cfg.food_service_size);
+  }
   
   
+  
+  // Loop for each chrono:
   for (time elapsed_time = 0; elapsed_time < total_time; elapsed_time++) {
-    // First of all, reload the tray stacks:
+    // First of all, if it is time, reload the tray stacks:
     if (elapsed_time % cfg.tray_reload_rate == 0)
       foreach_ix (i, 0, cfg.tray_stacks_count) // In each tray stack
         foreach_ix (_, 0, cfg.tray_reload_load) { // Reload the specified number of trays.
           if (stack_push(&tray_stacks[i], phantom_tray))
             trays_count++;
           else
-            break;
+            break;  // Just break if the tray stack is full.
         }
     
     user* usr = NULL; // Intermediary variable.
     
+    // Users arrive in the restaurant:
     foreach_ix (i, 0, cfg.user_income) {
-      // User arrives the course:
       usr = al_alloc(user_pool, 1, sizeof(user));
       *usr = (user) {
         .id = create_id(&user_idseed),
@@ -95,7 +104,7 @@ int main(int argc, char *argv[]) {
       enqueue(&user_cashier_queues[i % cfg.cashiers_count], usr);
     }
     
-    
+    // Cashiers:
     foreach_ix (i, 0, cfg.cashiers_count) {
       // User leaves the cashier, proceeding to the tray queue:
       usr = cashiers[i];
@@ -107,27 +116,27 @@ int main(int argc, char *argv[]) {
       enqueue(&user_tray_queues[i % cfg.tray_stacks_count], usr);
     }
     
-    
+    // Tray stacks, food services:
     foreach_ix (i, 0, cfg.tray_stacks_count) {
+      // If there are trays available:
       if (!stack_empty(tray_stacks[i])) {
         // User leaves the tray queue, proceeding to the respective tray stack:
         usr = dequeue(&user_tray_queues[i]);
         
-        // User grabs the tray:
+        // User, if any, grabs the tray:
         if (usr != NULL)
-          stack_pop(&tray_stacks[i]);
+          stack_pop(&tray_stacks[i]); // No need to delete the tray. Using phantom trays.
       }
-      else
-        // There were no trays available, so no user came from the tray stack to serve food:
-        usr = NULL;
+      else          // There were no trays available,
+        usr = NULL; // so no user came from the tray stack to serve food.
       
-      // User enters the respective food service,
-      // and the user at the last food bay proceeds to eat:
+      // User enters the respective food service, and the user at the last food bay leaves:
       usr = foodservice_shift(food_services[i], cfg.food_service_size, usr);
       
-      // User ended the course, proceeding to eat.
+      // If an user left the food service, it ended the course:
       if (usr != NULL) {
         time user_time = elapsed_time - usr->arrival;
+        
         total_user_time += user_time;
         served_users_count++;
         
@@ -136,10 +145,10 @@ int main(int argc, char *argv[]) {
     }
   }
   
-  
   // Decimal minutes are irrelevant...
   time average_user_time = served_users_count == 0 ? 0
                                                    : total_user_time / served_users_count;
+  
   
   printf("Total users: %lu\n", user_idseed.seed);
   printf("Total trays: %zu\n", trays_count);
@@ -148,6 +157,8 @@ int main(int argc, char *argv[]) {
   printf("Average user time: %zuh %zum\n", average_user_time / 60, average_user_time % 60);
   
   
+  
+  // Free resources:
   foreach_ix (i, 0, cfg.cashiers_count)
     // Delete user_cashier_queues:
     delete_queue(&user_cashier_queues[i], NULL, null_allocator());
@@ -171,6 +182,7 @@ int main(int argc, char *argv[]) {
   
   delete_vpool(&user_pool);
   delete_vpool(&llist_node_pool);
+  
   
   
   return 0;
