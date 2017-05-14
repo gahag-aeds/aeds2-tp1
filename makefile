@@ -19,6 +19,7 @@ OutputFileName   = restaurant
 OutputFile       = $(BinDir)/$(OutputFileName)
 CompilationUnits = $(LibAeds)/*.c					\
 									 $(LibAeds)/adt/*.c			\
+									 $(LibAeds)/io/*.c      \
 									 $(LibAeds)/memory/*.c  \
 									 $(SrcDir)/util/*.c			\
 									 $(SrcDir)/*.c
