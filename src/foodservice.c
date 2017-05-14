@@ -3,11 +3,11 @@
 #include <libaeds/array.h>
 
 
-// O(n)
+// Worst O(n)
 foodservice new_foodservice(allocator allocator, size_t size) {
   foodservice fs = al_alloc(allocator, size, sizeof(user*));
   
-  array_fill(size, (void**) fs, NULL);
+  array_fill(size, (void**) fs, NULL); // Worst O(n)
   
   return fs;
 }

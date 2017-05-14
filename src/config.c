@@ -72,8 +72,8 @@ int load_cfg(allocator allocator, int argc, char* argv[static argc], config* cfg
     
     2,
     (argvhandler[]) {
-      new_argvhandler(allocator, 1, cfg, (arghandler[]){ stdin_args }), // O(1)
-      new_argvhandler(allocator, 2, cfg, (arghandler[]){ NULL, file_args }) // O(1)
+      new_argvhandler(allocator, 1, cfg, (arghandler[]) { stdin_args }), // O(1)
+      new_argvhandler(allocator, 2, cfg, (arghandler[]) { NULL, file_args }) // O(1)
     }
   );
   
