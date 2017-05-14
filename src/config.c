@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include <assert.h>
 #include <stdio.h>
 
 #include <libaeds/args.h>
@@ -7,10 +8,13 @@
 #include <libaeds/io/file.h>
 
 
+// O(1)
 static int stdin_args(
   __attribute__((unused)) const char* _,
   void* parameter
 ) {
+  assert(parameter != NULL);
+  
   config* cfg = parameter;
   
   if (!prompt("User income (users/min): ",             "%zu", &cfg->user_income)       ||
@@ -25,10 +29,13 @@ static int stdin_args(
   return 0;
 }
 
+// O(1)
 static int file_args(
   const char* file_name,
   void* parameter
 ) {
+  assert(parameter != NULL);
+  
   config* cfg = parameter;
   
   FILE* cfg_file = fopen(file_name, "r");
@@ -51,18 +58,22 @@ static int file_args(
 }
 
 
+// O(1)
 int load_cfg(allocator allocator, int argc, char* argv[static argc], config* cfg) {
+  assert(argv != NULL);
+  assert(cfg != NULL);
+  
   argvresults results;
   
-  bool parsed = handle_args(
+  bool parsed = handle_args(  // O(1 + 1) worst.
     allocator, &results,
     
     argc, argv,
     
     2,
     (argvhandler[]) {
-      new_argvhandler(allocator, 1, cfg, (arghandler[]){ stdin_args }),
-      new_argvhandler(allocator, 2, cfg, (arghandler[]){ NULL, file_args })
+      new_argvhandler(allocator, 1, cfg, (arghandler[]){ stdin_args }), // O(1)
+      new_argvhandler(allocator, 2, cfg, (arghandler[]){ NULL, file_args }) // O(1)
     }
   );
   
@@ -89,12 +100,13 @@ int load_cfg(allocator allocator, int argc, char* argv[static argc], config* cfg
     }
   
   
-  delete_argvresults(&results);
+  delete_argvresults(&results); // O(1)
   
   return 0;
 }
 
 
+// O(1)
 bool print_cfg(config cfg) {
   return printf("User income (users/min): %zu\n",             cfg.user_income)       > 0
       && printf("Number of cashiers (count): %zu\n",          cfg.cashiers_count)    > 0
