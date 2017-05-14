@@ -1,15 +1,15 @@
 SrcDir = src
 ScriptDir = scripts
+DataDir = data
 BinDir = bin
 
 LibAeds = $(SrcDir)/libaeds
 
 SettingsFile = default_settings.cfg
-SettingsCombinationsFile = settings_combinations.txt
-CombinationsResultsFile = combinations_results.txt
-SortedResultsFile = sorted_results.txt
+SettingsCombinationsFile = $(DataDir)/settings_combinations.txt
+CombinationsResultsFile = $(DataDir)/combinations_results.txt
+SortedResultsFile = $(DataDir)/sorted_results.txt
 
-CombinationsFile = settings_combinations.txt
 GenCombinationsScript = $(ScriptDir)/gen_combinations.sh
 RunCombinationsScript = $(ScriptDir)/run_combinations.sh
 SortResultsScript = $(ScriptDir)/sort_results.sh
@@ -49,6 +49,9 @@ ReleaseFlags = -Wall            \
 directories: $(SrcDir)
 	@[ -d "$(BinDir)" ] || mkdir "$(BinDir)";
 
+datadir:
+	@[ -d "$(DataDir)" ] || mkdir "$(DataDir)";
+
 
 build: directories
 	@$(Build) $(BuildFlags) $(CompilationUnits)
@@ -69,13 +72,13 @@ debug: directories
 	@gdb --args $(OutputFile) $(SettingsFile)
 
 
-gencomb: $(ScriptDir)
+gencomb: $(ScriptDir) datadir
 	@$(GenCombinationsScript) > $(SettingsCombinationsFile)
 
 runcomb: $(ScriptDir) gencomb release
-	@$(RunCombinationsScript) $(OutputFile) $(CombinationsFile) > $(CombinationsResultsFile)
+	@$(RunCombinationsScript) $(OutputFile) $(SettingsCombinationsFile) > $(CombinationsResultsFile)
 
-sortres: $(ScriptDir)
+sortres: $(ScriptDir) $(CombinationsResultsFile)
 	@$(SortResultsScript) $(CombinationsResultsFile) > $(SortedResultsFile)
 
 
