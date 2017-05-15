@@ -1,34 +1,133 @@
-\documentclass{report}
+\documentclass{article}
 
 \usepackage[margin=1in]{geometry}
 
 \usepackage{graphicx}
 \usepackage{lmodern}
-\usepackage{amsmath}
-\usepackage{amssymb}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+
+\setlength{\parskip}{5pt}%
+\setlength\parindent{0pt}
+
 
 \begin{document}
 
 \begin{titlepage}
-    \centering
-    \vfill
-    {\bfseries\Large
-        AEDS 2 - TP1\\
-        Maio 2017\\
-    }    
-    \vfill
-    \includegraphics[width=10cm]{"../images/ufmg logo".jpg}
-    \vfill
-    {\bfseries\Large
-      Gabriel Bastos\\[5pt]
-      Matr\'icula: 2016058204
-    }
-    \vfill
+  \centering
+  
+  \vfill{
+    \bfseries\Huge
+    Universidade Federal de Minas Gerais\\[5pt]
+    \bfseries\Large
+    Bacharel em Sistemas de Informação \\
+    Algorítimos e Estruturas de Dados 2\\
+  }
+  
+  \vfill
+  
+  \includegraphics[width=13cm]{images/ufmg_logo.jpg}
+  
+  \vfill{
+    \bfseries\Large
+    Trabalho Prático 1\\
+    Maio 2017\\
+  }
+  \vfill{
+    \bfseries\large
+    Gabriel Silva Bastos\\[5pt]
+    Matrícula: 2016058204
+  }
 \end{titlepage}
 
 
-\section{Par\^ametros}
-axsa
-\section{asd}
+\section{Introdução}
+O trabalho prático consiste em desenvolver uma simulação para um restaurante. Tal simulação deve considerar o percurso que um usuário do restaurante realiza desde sua chegada até quando termina de servir seu prato. O objetivo é mensurar o tempo médio que os usuários levam para completar este percurso.
+
+Alterações em detalhes da simulação devem ser possíveis para a comparação dos resultados de diferentes configurações do percurso.
+
+
+\section{Visão geral da solução}
+Como sugerido no trabalho prático, o diagrama do percurso foi utilizado para se implementar a simulação.\\
+Para permitir maiores alterações na dinâmica do percurso, a variação do número de filas de bandejas, caixas, filas de bandejas, pilhas de bandejas e \textit{buffets} de alimentos é permitida.\\
+Define-se também diferentes pilhas de bandejas e \textit{buffets} de alimentos como equivalentes. Ou seja, todas as pilhas abrigam o mesmo valor máximo de bandejas e todos \textit{buffets} possuem o mesmo número de cubas, com a mesma ordem de alimentos.
+
+As estruturas de dados fila e pilha, apresentadas durante curso de AEDS 2, foram escolhidas para representar respectivamente as filas de ficha/bandeja, e as pilhas de bandejas.\\
+Para o caixa e os \textit{buffets} de alimentos, foram utilizados simples ponteiros.
+
+Desta forma foi modelado todo o diagrama, permitindo sua implementação na linguagem C.
+
+\subsection{Parâmetros}
+\label{ssec:params}
+Os seguintes itens foram definidos como alteráveis na simulação:
+\begin{itemize}
+  \setlength\itemsep{3px}
+  \item Número de usuários que adentram o percurso por minuto.
+  \item Número de caixas. Este valor também determina o número de filas de caixa.
+  \item Número de pilhas de bandejas. Este valor também determina o número de filas de bandeja e o número de \textit{buffets} de alimentos.
+  \item Número máximo de bandejas em cada pilha de bandejas.
+  \item Número de bandejas repostas em cada pilha a cada reposição.
+  \item Frequência de reposição de bandejas nas pilhas.
+  \item Número de cubas em cada \textit{buffet} de alimentos.
+\end{itemize}
+
+\subsection{Cálculo do tempo médio}
+O cálculo do tempo de um usuário foi realizado subtraindo o horário da chegada deste no percurso pelo horário de saída do mesmo. Apenas os usuários atendidos dentro do tempo total definido no trabalho (4 horas) são incluídos no cálculo. Portanto, usuários remanescentes no percurso após decorrido o tempo total não são considerados.
+
+Desta forma, torna-se trivial o cálculo do tempo médio de todos os usuários atendidos.
+
+
+\section{Implementação}
+
+\subsection{Organização e estrutura de diretórios}
+A organização dos diretórios no projeto foi definida da seguinte forma:
+
+\begin{tabular}{ll}
+  bin:& binários resultantes da compilação.\\
+  data:& arquivos contendo os dados referentes aos resultados obtidos nas simulações.\\
+  doc:& arquivos referentes à documentação do projeto.\\
+  scripts:& \textit{scripts} para manipulação da simulação, dos parâmetros e dos resultados.\\
+  src:& código fonte da simulação.
+\end{tabular}
+
+\subsection{Compilação}
+Dois \textit{makefiles} foram desenvolvidos para o projeto. Um para ambiente linux (makefile) e um para ambiente Windows (makefile.win). A diretriz simples de compilação é denominada \textit{build} em ambos \textit{makefiles}.
+
+O \textit{makefile} para ambiente linux possui também diretrizes para a execução dos \textit{scripts} e armazenamento dos resultados destes em disco. Outras facilidades de debug também são definidas neste \textit{makefile}.
+
+\subsection{Entrada}
+Foram implementadas duas formas de entrada dos parâmetros na simulação. Caso seja fornecido um único nome de arquivo na execução do programa, os parâmetros são obtidos no conteúdo do arquivo. Caso contrário, é requisitado ao usuário a entrada de cada um dos parâmetros.
+
+O arquivo de configuração deve seguir o seguinte formato:\\
+Um número respectivo à um parâmetro no início de cada linha, na ordem dos parâmetros descritos na seção~\ref{ssec:params}.\\
+Comentários podem suceder cada número em cada linha.
+
+\subsection{Estruturas de dados}
+
+\subsection{Alocação de memória e otimizações}
+
+\subsection{Decorrência do tempo no restaurante}
+Foi utilizado um \textit{loop}, iterando cada instante de tempo (em minutos) do estado do restaurante. Como na noção de uma máquina de estados, o código dentro do \textit{loop} executa a dinâmica do percurso de um instante de tempo para o próximo. Desta forma, a partir de um estado inicial com o percurso vazio, deriva-se todos os estados até o tempo final desejado. Em cada instante, se um usuário sai do percurso, seu tempo é coletado para o futuro cálculo da média.
+
+\subsection{Coleta e comparação de resultados}
+Tendo pronta a implementação da simulação, é prático aplicar determinados parâmetros de entrada para se obter o resultado desta configuração.
+
+\textit{Scripts} foram desenvolvidos para gerar e aplicar na simulação as configurações interessantes, e também coletar e ordenar os resultados. Desta forma torna-se rápido obter a configuração que gerou a melhor performance do restaurante.
+
+
+\section{Análise de complexidade}
+Os algoritmos ótimos foram selecionados para a implementação das estruturas de dados. 
+
+
+\section{Parâmetros e resultados}
+
+\subsection{Parâmetros interessantes}
+
+\subsection{Resultados obtidos}
+
+
+\section{Conclusão}
+
 
 \end{document}
