@@ -22,7 +22,7 @@
     Universidade Federal de Minas Gerais\\[5pt]
     \bfseries\Large
     Bacharel em Sistemas de Informação \\
-    Algorítimos e Estruturas de Dados 2\\
+    Algoritmos e Estruturas de Dados 2\\
   }
   
   \vfill
@@ -105,7 +105,7 @@ Comentários podem suceder cada número em cada linha.
 
 \subsection{Estruturas de dados}
 Como base, foram implementadas uma lista encadeada e uma lista baseada em um vetor. Foram denominadas \textit{linkedlist} e \textit{vectorlist}.\\
-A partir destas, foram implementadas as estruturas pilha e fila, denomidadas \textit{stack} e \textit{queue}, e suas operações básicas. Ambas permitem utilizar tanto uma \textit{linkedlist} quanto uma \textit{vectorlist} como armazenamento.
+A partir destas, foram implementadas as estruturas pilha e fila, denominadas \textit{stack} e \textit{queue}, e suas operações básicas. Ambas permitem utilizar tanto uma \textit{linkedlist} quanto uma \textit{vectorlist} como armazenamento.
 
 Todas as estruturas foram implementadas de forma genérica, utilizando ponteiros para \textit{void}. A responsabilidade de alocação de itens inseridos foi delegada para o usuário da estrutura de dados.
 Ainda, para uma maior flexibilidade, as estruturas são parametrizadas por um alocador de memória fornecido pelo usuário. Desta forma, torna-se trivial o controle do método utilizado para utilização de memória.
@@ -127,7 +127,7 @@ Tendo pronta a implementação da simulação, é prático aplicar determinados 
 \section{Análise de complexidade}
 Os algoritmos ótimos foram selecionados para a implementação das estruturas de dados. A maioria das operações implementadas possui complexidade $\mathcal{O}(1)$.
 
-A documentação sobre o cálculo de complexidade referente a cada função, incluindo as relativas às estruturas de dados, foi incluida como comentários adjacentes ao código correspondente.
+A documentação sobre o cálculo de complexidade referente a cada função, incluindo as relativas às estruturas de dados, foi incluída como comentários adjacentes ao código correspondente.
 
 
 \section{Parâmetros e resultados}
@@ -158,7 +158,7 @@ Através de \textit{scripts}, cada combinação dos parâmetros foi aplicada à 
   \item Número de bandejas repostas em cada pilha a cada reposição (crescente).
   \item Frequência de reposição de bandejas nas pilhas (decrescente).
 \end{itemize}
-O critério foi baseado na idéia de que alguns parâmetros apresentam maior custo para alteração. Por exemplo: é mais caro adicionar um caixa ao restaurante do que adicionar uma pilha de bandejas.
+O critério foi baseado na ideia de que alguns parâmetros apresentam maior custo para alteração. Por exemplo: é mais caro adicionar um caixa ao restaurante do que adicionar uma pilha de bandejas.
 
 Os parâmetros que compõe o melhor resultado de acordo com o critério foram:
 \begin{itemize}
@@ -177,7 +177,7 @@ Considerando os resultados obtidos, é crucial que o número de caixas filas e p
 
 Essa é a alteração ótima para proporcionar a máxima performance do restaurante.
 
-Caso uma performance média seja aceitável, é possível verificar qual alteração ótima é necessária para se atingir no arquivo \textit{data/sorted\textunderscore resutls.txt}.
+Caso uma performance média seja aceitável, é possível verificar qual alteração ótima é necessária para se atingir no arquivo \textit{data/sorted\textunderscore results.txt}.
 
 
 \end{document}
