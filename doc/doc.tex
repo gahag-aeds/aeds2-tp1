@@ -62,7 +62,7 @@ Desta forma foi modelado todo o diagrama, permitindo sua implementação na ling
 \label{ssec:params}
 Os seguintes itens foram definidos como alteráveis na simulação:
 \begin{itemize}
-  \setlength\itemsep{3px}
+  \setlength\itemsep{2px}
   \item Número de usuários que adentram o percurso por minuto.
   \item Número de caixas. Este valor também determina o número de filas de caixa.
   \item Número de pilhas de bandejas. Este valor também determina o número de filas de bandeja e o número de \textit{buffets} de alimentos.
@@ -104,8 +104,16 @@ Um número respectivo à um parâmetro no início de cada linha, na ordem dos pa
 Comentários podem suceder cada número em cada linha.
 
 \subsection{Estruturas de dados}
+Como base, foram implementadas uma lista encadeada e uma lista baseada em um vetor. Foram denominadas \textit{linkedlist} e \textit{vectorlist}.\\
+A partir destas, foram implementadas as estruturas pilha e fila, denomidadas \textit{stack} e \textit{queue}, e suas operações básicas. Ambas permitem utilizar tanto uma \textit{linkedlist} quanto uma \textit{vectorlist} como armazenamento.
+
+Todas as estruturas foram implementadas de forma genérica, utilizando ponteiros para \textit{void}. A responsabilidade de alocação de itens inseridos foi delegada para o usuário da estrutura de dados.
+Ainda, para uma maior flexibilidade, as estruturas são parametrizadas por um alocador de memória fornecido pelo usuário. Desta forma, torna-se trivial o controle do método utilizado para utilização de memória.
 
 \subsection{Alocação de memória e otimizações}
+Inicialmente, foi utilizado \textit{malloc} para alocação dos usuários e dos membros internos das estruturas de dados. Após análise através do \textit{valgrind}, foi constatado que um grande número de alocações era realizada. Para melhorar a performance nesse quesito, considerando que o número máximo de usuários é conhecido, a estratégia de \textit{memory pool} utilizada.
+
+Foi utilizado um grande vetor como \textit{pool}, e uma \textit{stack} para controle das alocações. Portanto, as operações de alocação na \textit{memory pool} são extremamente rápidas. Desta forma, uma única alocação com \textit{malloc} é realizada para os usuários, e uma única para os detalhes internos das estruturas.
 
 \subsection{Decorrência do tempo no restaurante}
 Foi utilizado um \textit{loop}, iterando cada instante de tempo (em minutos) do estado do restaurante. Como na noção de uma máquina de estados, o código dentro do \textit{loop} executa a dinâmica do percurso de um instante de tempo para o próximo. Desta forma, a partir de um estado inicial com o percurso vazio, deriva-se todos os estados até o tempo final desejado. Em cada instante, se um usuário sai do percurso, seu tempo é coletado para o futuro cálculo da média.
@@ -117,17 +125,59 @@ Tendo pronta a implementação da simulação, é prático aplicar determinados 
 
 
 \section{Análise de complexidade}
-Os algoritmos ótimos foram selecionados para a implementação das estruturas de dados. 
+Os algoritmos ótimos foram selecionados para a implementação das estruturas de dados. A maioria das operações implementadas possui complexidade $\mathcal{O}(1)$.
+
+A documentação sobre o cálculo de complexidade referente a cada função, incluindo as relativas às estruturas de dados, foi incluida como comentários adjacentes ao código correspondente.
 
 
 \section{Parâmetros e resultados}
 
 \subsection{Parâmetros interessantes}
+Foram consideradas como configurações interessantes as seguintes variações de cada parâmetro:
+\begin{itemize}
+  \setlength\itemsep{0px}
+  \item Número de usuários que adentram o percurso por minuto: sempre 2.
+  \item Número de caixas: 1--4.
+  \item Número de pilhas de bandejas: 1--4.
+  \item Número máximo de bandejas em cada pilha de bandejas: 30, 40 ou 50.
+  \item Número de bandejas repostas em cada pilha a cada reposição: 10, 15 ou 20.
+  \item Frequência de reposição de bandejas nas pilhas: 12, 14, 16, 18 ou 20.
+  \item Número de cubas em cada \textit{buffet} de alimentos: sempre 4.
+\end{itemize}
+Um \textit{script} foi utilizado para gerar as combinações destas variações. Foram totalizadas 720 combinações.
+
+\pagebreak
 
 \subsection{Resultados obtidos}
+Através de \textit{scripts}, cada combinação dos parâmetros foi aplicada à simulação, e o resultado coletado. Após a coleção de todos os resultados, estes foram ordenados de acordo com o seguinte critério:
+\begin{itemize}
+  \setlength\itemsep{0px}
+  \item Tempo médio dos usuários (crescente).
+  \item Número de caixas (crescente).
+  \item Número de pilhas de bandejas (crescente).
+  \item Número de bandejas repostas em cada pilha a cada reposição (crescente).
+  \item Frequência de reposição de bandejas nas pilhas (decrescente).
+\end{itemize}
+O critério foi baseado na idéia de que alguns parâmetros apresentam maior custo para alteração. Por exemplo: é mais caro adicionar um caixa ao restaurante do que adicionar uma pilha de bandejas.
 
+Os parâmetros que compõe o melhor resultado de acordo com o critério foram:
+\begin{itemize}
+  \setlength\itemsep{0px}
+  \item Número de usuários que adentram o percurso por minuto: 2.
+  \item Número de caixas: 2.
+  \item Número de pilhas de bandejas: 2.
+  \item Número máximo de bandejas em cada pilha de bandejas: 30.
+  \item Número de bandejas repostas em cada pilha a cada reposição: 15.
+  \item Frequência de reposição de bandejas nas pilhas: 14.
+  \item Número de cubas em cada \textit{buffet} de alimentos: 4.
+\end{itemize}
 
 \section{Conclusão}
+Considerando os resultados obtidos, é crucial que o número de caixas filas e pilhas sejam 2. O número máximo de bandejas em cada pilha não necessita de ser aumentado, porém uma leve melhoria na reposição de bandejas é necessária: de 10 bandejas a cada 12 minutos para 15 bandejas a cada 14.
+
+Essa é a alteração ótima para proporcionar a máxima performance do restaurante.
+
+Caso uma performance média seja aceitável, é possível verificar qual alteração ótima é necessária para se atingir no arquivo \textit{data/sorted\textunderscore resutls.txt}.
 
 
 \end{document}
